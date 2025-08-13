@@ -10,5 +10,6 @@ class Config:
         "database": os.getenv("DB_NAME"),
         "user": os.getenv("DB_LOGIN"),
         "pool_size": int(os.getenv("DB_POOL_SIZE")),
-        "charset": os.getenv("DB_CHARSET")
+        "charset": os.getenv("DB_CHARSET"),
+        "api_key": os.getenv("API_KEY")
     }

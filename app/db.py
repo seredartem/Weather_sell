@@ -1,6 +1,9 @@
 from mysql.connector.pooling import MySQLConnectionPool
+import mysql.connector
 from contextlib import contextmanager
-from flask import current_app
+from flask import current_app, Flask, Blueprint,jsonify,request
+from .config import Config
+
 
 def init_pool(app):
     pool = MySQLConnectionPool(pool_name="flask_pool",pool_size=app.config["DB_CONFIG"].pop("pool_size"), **app.config["DB_CONFIG"])
@@ -18,3 +21,10 @@ def get_conn():
         raise
     finally:
         conn.close()
+
+connectot = mysql.connector.connect(
+    host = Config.DB_CONFIG['host'],
+    user = Config.DB_CONFIG['user'],
+    password = Config.DB_CONFIG['password'],
+    database = Config.DB_CONFIG['database']
+)
