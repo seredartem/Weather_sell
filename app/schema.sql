@@ -3,7 +3,7 @@
 CREATE TABLE Account(
     id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(20) NOT NULL UNIQUE,
-    password VARCHAR(80) NOT NULL,
+    password VARCHAR(250) NOT NULL,
     balance DECIMAL(6,2) NOT NULL DEFAULT(0) CHECK(balance >= 0),
     requests INT NOT NULL DEFAULT(0) CHECK(requests >= 0 and requests <= 10),
     created_at TIMESTAMP DEFAULT(CURRENT_TIMESTAMP)
