@@ -32,7 +32,6 @@ def check_data(f):
         return f(email,password,*args)
     return wrapper
 
-
 @account_bp.route("/register", methods = ["POST"])
 @check_data
 def register(email,password):
@@ -73,7 +72,6 @@ def auth_required(f):
             return jsonify({"message":"Token is missing"}), 400
     return wrapper
     
-
 @account_bp.route("/login", methods=["POST"])
 @check_data
 def login(email,password):
@@ -105,21 +103,11 @@ def get_weather():
         data = jwt.decode(token,app.config['SECRET_KEY'], 'HS256')
         email = data['email']
 
-
-        cursor = conn.cursor(dictionary=True)    
-        cursor.execute(f"SELECT email, requests FROM account WHERE email = '{email}'")
-        account = cursor.fetchone()
-        cursor.execute(f"UPDATE account SET requests = {account['requests'] + 1} WHERE email = '{email}'")
-        print(account)
+        can_request, message = can_make_request(conn, email)
+        if not can_request:
+            return jsonify({"error": message}), 403
 
 
-
-
-
-        
-        
-
-    
         if len(request.args.keys()) > 0:
             city = request.args.get('city')
         resp = requests.get(f'http://api.openweathermap.org/data/2.5/weather?q={city}&appid={app.config["KEY_WEATHER"]}')
@@ -131,10 +119,27 @@ def get_weather():
         humidity = data['main']['humidity']
         wind = data['wind']['speed']
         return jsonify({'description': description, 'temp':temp ,'humidity': humidity, 'wind':wind}),200
-        
-        
+    
+def can_make_request(conn, email, limit=10):
+    cursor = conn.cursor(dictionary = True)
+    cursor.execute("Select requests FROM account WHERE email = %s",(email,))
+    account = cursor.fetchone()
+    if not account:
+        return False, "message: User is not found"
+    
+    if account["requests"] >= limit:
+        return False, "limit is finished"
+    
+    new_requests = account["requests"] + 1
+    cursor.execute("UPDATE account SET requests = %s WHERE email = %s", (new_requests, email))
+    conn.commit()
+    cursor.close()
+
+    return True, f"Request #{new_requests} accepted"
          
 @api_bp.route("/test", methods=["GET"])
 def test():
     print(app.config['API_KEY'])
     return "OK"
+
+
